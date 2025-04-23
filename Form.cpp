@@ -7,7 +7,30 @@ mutex db_mutex;
 
 bool Form::validarCPF(const string& cpf) 
 {
-    return regex_match(cpf, regex("\\d{11}"));
+    // Verifica se tem exatamente 11 dígitos numéricos
+    if (!regex_match(cpf, regex("\\d{11}")))
+        return false;
+
+    // Verifica se todos os dígitos são iguais (caso inválido)
+    if (all_of(cpf.begin(), cpf.end(), [&](char c) { return c == cpf[0]; }))
+        return false;
+
+    // Cálculo do primeiro dígito verificador
+    int soma1 = 0;
+    for (int i = 0; i < 9; ++i)
+        soma1 += (cpf[i] - '0') * (10 - i);
+    int dig1 = soma1 % 11;
+    dig1 = (dig1 < 2) ? 0 : 11 - dig1;
+
+    // Cálculo do segundo dígito verificador
+    int soma2 = 0;
+    for (int i = 0; i < 10; ++i)
+        soma2 += (cpf[i] - '0') * (11 - i);
+    int dig2 = soma2 % 11;
+    dig2 = (dig2 < 2) ? 0 : 11 - dig2;
+
+    // Verifica se os dígitos calculados batem com os fornecidos
+    return (cpf[9] - '0' == dig1) && (cpf[10] - '0' == dig2);
 }
 
 bool Form::validarEmail(const string& email)
@@ -36,10 +59,15 @@ bool Form::validarDataNascimento(const string& data)
 
 bool Form::validarSenha(const string& senha)
 {
-    return senha.length() >= 8 &&
+    bool ok = senha.length() >= 8 &&
         regex_search(senha, regex("[A-Z]")) &&
         regex_search(senha, regex("[a-z]")) &&
         regex_search(senha, regex("[0-9]"));
+
+    if (!ok)
+        cout << "Por favor insira no mínimo 1 letra maiuscula e no mínimo 1 número!";
+
+    return ok;
 }
 
 string Form::dataAtual()
